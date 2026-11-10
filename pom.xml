@@ -4,7 +4,7 @@
 
   <groupId>io.github.ardoco</groupId>
   <artifactId>magika</artifactId>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.7.0-SNAPSHOT</version>
 
   <name>ArDoCo - Magika</name>
   <description>Java implementation of Google's magika tool to predict file types</description>
@@ -48,7 +48,6 @@
     <onnxruntime.version>1.20.0</onnxruntime.version>
     <slf4j.version>2.0.14</slf4j.version>
     <jackson.version>2.17.2</jackson.version>
-    <error-prone.version>2.36.0</error-prone.version>
     <junit.version>5.11.0</junit.version>
     <spotless.version>2.44.2</spotless.version>
   </properties>
@@ -56,12 +55,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.16.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.errorprone</groupId>
-      <artifactId>error_prone_core</artifactId>
-      <version>${error-prone.version}</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.onnxruntime</groupId>
@@ -77,6 +71,12 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
