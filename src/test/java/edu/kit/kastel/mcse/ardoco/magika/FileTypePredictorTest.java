@@ -1,11 +1,15 @@
-/* Licensed under Apache 2.0 2025. */
+/* Licensed under Apache 2.0 2025-2026. */
 package edu.kit.kastel.mcse.ardoco.magika;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class FileTypePredictorTest {
     private final FileTypePredictor predictor = new FileTypePredictor();
@@ -44,7 +48,8 @@ class FileTypePredictorTest {
         var input = Paths.get("src/main/resources");
 
         var resultMap = predictor.predictFileTypesFromFolderRecursively(input);
-        Assertions.assertEquals(3, resultMap.size());
+        // config.json, model.onnx, content_types_kb.min.json, LICENSE
+        Assertions.assertEquals(4, resultMap.size());
 
         input = Paths.get("src/main/java");
 
@@ -115,5 +120,82 @@ class FileTypePredictorTest {
         byte[] input = content.getBytes();
         var result = predictor.predictBytes(input);
         Assertions.assertEquals("markdown", result.label());
+    }
+
+    @Test
+    void emptyFile(@TempDir Path dir) throws IOException {
+        Path file = Files.write(dir.resolve("empty"), new byte[0]);
+        var prediction = predictor.predictFileType(file);
+        Assertions.assertEquals(new Prediction("empty", 1.f, "undefined", OverwriteReason.NONE), prediction);
+    }
+
+    @Test
+    void shortAsciiIsText(@TempDir Path dir) throws IOException {
+        Path file = Files.write(dir.resolve("short"), "abcdefg".getBytes(StandardCharsets.US_ASCII));
+        var prediction = predictor.predictFileType(file);
+        Assertions.assertEquals("txt", prediction.label());
+        Assertions.assertEquals("undefined", prediction.dlLabel());
+    }
+
+    @Test
+    void shortNonUtf8IsUnknown(@TempDir Path dir) throws IOException {
+        byte[] content = new byte[7];
+        java.util.Arrays.fill(content, (byte) 0xFF);
+        Path file = Files.write(dir.resolve("short.bin"), content);
+        var prediction = predictor.predictFileType(file);
+        Assertions.assertEquals("unknown", prediction.label());
+        Assertions.assertEquals("undefined", prediction.dlLabel());
+    }
+
+    @Test
+    void whitespacePaddedShortTextSkipsModel() {
+        // 10 bytes in total, but only 6 bytes after stripping leading whitespace (< min_file_size_for_dl = 8)
+        var prediction = predictor.predictBytes("   ab\n\n\n\n".getBytes(StandardCharsets.US_ASCII));
+        Assertions.assertEquals(new Prediction("txt", 1.f), prediction);
+    }
+
+    @Test
+    void whitespacePaddingDoesNotChangeLabel() throws IOException {
+        byte[] source = Files.readAllBytes(Paths.get("src/main/java/edu/kit/kastel/mcse/ardoco/magika/Configuration.java"));
+        String padding = " \t\n\r\u000B\f".repeat(300); // stays below block_size (4096), otherwise the first block would be whitespace only
+        byte[] padded = (padding + new String(source, StandardCharsets.UTF_8) + padding).getBytes(StandardCharsets.UTF_8);
+
+        var unpaddedPrediction = predictor.predictBytes(source);
+        var paddedPrediction = predictor.predictBytes(padded);
+        Assertions.assertEquals("java", unpaddedPrediction.label());
+        Assertions.assertEquals(unpaddedPrediction.label(), paddedPrediction.label());
+    }
+
+    @Test
+    void nonexistentPathThrows(@TempDir Path dir) {
+        Path missing = dir.resolve("does-not-exist");
+        var exception = Assertions.assertThrows(IllegalArgumentException.class, () -> predictor.predictFileType(missing));
+        Assertions.assertNotNull(exception.getMessage());
+        exception = Assertions.assertThrows(IllegalArgumentException.class, () -> predictor.predictFileTypesFromFolder(missing));
+        Assertions.assertNotNull(exception.getMessage());
+    }
+
+    @Test
+    void predictFileTypesFromFolderIsNotRecursive(@TempDir Path dir) throws IOException {
+        Files.writeString(dir.resolve("a.txt"), "Hello world, this is a plain text file.\n");
+        Files.writeString(dir.resolve("b.json"), "{\"key\": \"value\", \"list\": [1, 2, 3]}\n");
+        Path sub = Files.createDirectory(dir.resolve("sub"));
+        Files.writeString(sub.resolve("c.txt"), "Nested file that must not be found.\n");
+
+        Assertions.assertEquals(2, predictor.predictFileTypesFromFolder(dir).size());
+        Assertions.assertEquals(3, predictor.predictFileTypesFromFolderRecursively(dir).size());
+    }
+
+    @Test
+    void pathAndBytesYieldSamePrediction() throws IOException {
+        Path file = Paths.get("pom.xml");
+        Assertions.assertEquals(predictor.predictFileType(file), predictor.predictBytes(Files.readAllBytes(file)));
+    }
+
+    @Test
+    void modelOutputMatchesLabels() {
+        // the predictor constructor verifies that the model output dimension equals the number of labels
+        Assertions.assertEquals(214, new Configuration().getTargetLabels().size());
+        Assertions.assertDoesNotThrow(() -> new FileTypePredictor(PredictionMode.BEST_GUESS));
     }
 }
