@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Assertions;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Typed records for the google/magika reference test data.
@@ -26,7 +27,7 @@ final class ReferenceData {
         try (InputStream raw = ReferenceData.class.getResourceAsStream(resource)) {
             Assertions.assertNotNull(raw, "Missing test resource " + resource);
             try (InputStream in = new GZIPInputStream(raw)) {
-                return new ObjectMapper().readValue(in, type);
+                return JsonMapper.builder().build().readValue(in, type);
             }
         }
     }

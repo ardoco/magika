@@ -48,16 +48,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <onnxruntime.version>1.20.0</onnxruntime.version>
     <slf4j.version>2.0.14</slf4j.version>
-    <jackson.version>2.17.2</jackson.version>
+    <jackson.version>3.3.0</jackson.version>
     <junit.version>5.11.0</junit.version>
     <spotless.version>2.44.2</spotless.version>
   </properties>
   <dependencies>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
     <dependency>
       <groupId>com.microsoft.onnxruntime</groupId>
       <artifactId>onnxruntime</artifactId>
@@ -92,6 +87,11 @@
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
     </dependency>
   </dependencies>
 
