@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The configuration of the bundled magika model (parsed from {@code /magika/config.json}).
@@ -47,7 +47,7 @@ public class Configuration {
             if (stream == null) {
                 throw new IllegalStateException("Could not find resource " + MAGIKA_CONFIG_JSON);
             }
-            return new ObjectMapper().readValue(stream, ModelConfig.class);
+            return JsonMapper.builder().build().readValue(stream, ModelConfig.class);
         } catch (IOException e) {
             throw new IllegalStateException("Could not read " + MAGIKA_CONFIG_JSON, e);
         }

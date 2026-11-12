@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Knowledge base about content types (parsed from {@code /magika/content_types_kb.min.json}).
@@ -21,7 +21,7 @@ final class ContentTypeKnowledgeBase {
             if (stream == null) {
                 throw new IllegalStateException("Could not find resource " + KB_JSON);
             }
-            this.contentTypes = Map.copyOf(new ObjectMapper().readValue(stream, new TypeReference<Map<String, ContentTypeInfo>>() {
+            this.contentTypes = Map.copyOf(JsonMapper.builder().build().readValue(stream, new TypeReference<Map<String, ContentTypeInfo>>() {
             }));
         } catch (IOException e) {
             throw new IllegalStateException("Could not read " + KB_JSON, e);
