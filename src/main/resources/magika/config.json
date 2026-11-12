@@ -224,19 +224,24 @@
     "zlibstream"
   ],
   "thresholds": {
+    "crt": 0.9,
     "handlebars": 0.9,
     "ignorefile": 0.95,
     "latex": 0.95,
-    "markdown": 0.9,
+    "markdown": 0.75,
     "ocaml": 0.9,
     "pascal": 0.95,
+    "r": 0.9,
     "rst": 0.9,
     "sql": 0.9,
-    "tsv": 0.9
+    "tsv": 0.9,
+    "zig": 0.9
   },
   "overwrite_map": {
     "randombytes": "unknown",
     "randomtxt": "txt"
   },
+  "protection": "none",
+  "aes_key_hex": "",
   "version_major": 3
 }

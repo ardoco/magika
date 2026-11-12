@@ -14,7 +14,8 @@ See also [their website](https://google.github.io/magika/).
 ## Getting Started
 
 This library is meant to be used as a dependency in your Java project. It is available on Maven Central.
-We provide a simple API to the ONNX model for classification (v0.6.0).
+We provide a simple API to the ONNX model for classification.
+The bundled model is google/magika `standard_v3_3` (since 0.7.0; earlier versions bundled `standard_v3_0`).
 
 If you need a CLI, we suggest you use the original [google/magika](https://github.com/google/magika) project.
 
@@ -22,11 +23,34 @@ If you need a CLI, we suggest you use the original [google/magika](https://githu
 
 ```xml
 <dependency>
-    <groupId>io.github.ardoco</groupId>
-    <artifactId>magika</artifactId>
-    <version>0.6.1</version>
+	<groupId>io.github.ardoco</groupId>
+	<artifactId>magika</artifactId>
+	<version>0.6.1</version>
 </dependency>
 ```
+
+Version 0.7.0 brings the `standard_v3_3` model, prediction modes, and the extended `Prediction` record described below.
+
+### Usage
+
+```java
+FileTypePredictor predictor = new FileTypePredictor(); // PredictionMode.HIGH_CONFIDENCE
+Prediction prediction = predictor.predictFileType(Path.of("pom.xml"));
+System.out.println(prediction.label()); // xml
+
+Prediction guess = new FileTypePredictor(PredictionMode.BEST_GUESS).predictBytes(bytes);
+```
+
+A `PredictionMode` controls how confident the model must be before its label is reported (same semantics as google/magika):
+* `HIGH_CONFIDENCE` (default): the score must reach the per-label threshold of the model configuration.
+* `MEDIUM_CONFIDENCE`: the score must reach the medium confidence threshold.
+* `BEST_GUESS`: the model label is always reported.
+
+A `Prediction` contains:
+* `label`: the output label (e.g., `java`, `txt`, `unknown`, or `empty`).
+* `probability`: the score of the model for `dlLabel` (`1.0` if the model was not invoked).
+* `dlLabel`: the label predicted by the model, or `undefined` if the model was not invoked (e.g., empty or very small inputs).
+* `overwriteReason`: why `label` differs from `dlLabel`: `NONE`, `LOW_CONFIDENCE` (falls back to `txt` or `unknown`), or `OVERWRITE_MAP`.
 
 
 ## Known Limitations & Contributing
